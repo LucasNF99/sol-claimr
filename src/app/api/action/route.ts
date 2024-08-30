@@ -1,5 +1,5 @@
 import { ActionGetResponse, ActionPostRequest, ActionPostResponse, ACTIONS_CORS_HEADERS, InlineNextActionLink, PostNextActionLink } from "@solana/actions";
-import { PublicKey, Connection, clusterApiUrl, Transaction, SystemProgram } from "@solana/web3.js";
+import { PublicKey, Connection, clusterApiUrl, Transaction, SystemProgram, TransactionMessage } from "@solana/web3.js";
 import { getEmptyTokenAccounts } from "./helpers";
 import { createCloseAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { BlinksightsClient } from 'blinksights-sdk';
@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   const requestUrl = new URL(req.url);
   const iconURL = new URL("/claimer.png", requestUrl.origin);
 
-  const response: ActionGetResponse = client.createActionGetResponseV1(req.url, {
+  const response: ActionGetResponse =  {
     icon: iconURL.toString(),
     description: 'Close Token Accounts to get back your SOL',
     title: 'SOLClaimr',
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
         },
       ]
     },
-  });
+  };
   client.trackRenderV1(req.url, response);
   return new Response(JSON.stringify(response), {
     status: 200,
@@ -137,11 +137,27 @@ export async function POST(req: Request) {
         toPubkey: claimerWallet,
       });
 
+
       tx.add(sendToMyWalletInstruction);
 
       tx.feePayer = user;
       const bh = (await connection.getLatestBlockhash({commitment: 'finalized'})).blockhash;
       tx.recentBlockhash = bh;
+
+      const blinksightsActionIdentityInstruction = client.getActionIdentityInstructionV2(userPublicKey, req.url);
+
+
+
+      // if(blinksightsActionIdentityInstruction){
+      //   const messageV0 = new TransactionMessage({
+      //     payerKey: user,
+      //     recentBlockhash: bh,
+      //     instructions: [
+      //         blinksightsActionIdentityInstruction
+      //     ],
+      //   }).compileToV0Message();
+      //   console.log(messageV0)
+      // }
 
       const serializedTX = tx.serialize({
         requireAllSignatures: false,

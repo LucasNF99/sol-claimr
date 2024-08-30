@@ -11,7 +11,7 @@
   "dependencies": {
     "@solana/spl-token": "^0.4.8",
     "@solana/web3.js": "^1.95.3",
-    "blinksights-sdk": "^1.0.9",
+    "blinksights-sdk": "^1.0.10",
     "canvas": "^2.11.2",
     "next": "14.2.7",
     "react": "^18",
