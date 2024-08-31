@@ -22,23 +22,11 @@ export async function GET(req: Request) {
         {
           href: req.url,
           label: 'Check open accounts',
-          // parameters: [
-          //   {
-          //     name:'check',
-          //     type: 'checkbox',
-          //     required: false,
-          //     options: [{
-          //       label:"check",
-          //       value:"check",
-          //     }],
-          //     label: 'check',
-          //   }
-          // ]
         },
       ]
     },
   };
-  client.trackRenderV1(req.url, response);
+  // client.trackRenderV1(req.url, response);
   return new Response(JSON.stringify(response), {
     status: 200,
     headers: ACTIONS_CORS_HEADERS,
@@ -53,6 +41,7 @@ export async function POST(req: Request) {
   const userPublicKey = requestBody.account;
   const user = new PublicKey(userPublicKey);
   const connection = new Connection(clusterApiUrl('devnet'));
+  const iconURL = new URL("/participation.png", currentUrl.origin);
 
   let emptyTAs = await getEmptyTokenAccounts(user, connection, TOKEN_PROGRAM_ID);
   if (!Array.isArray(emptyTAs)) {
@@ -102,6 +91,7 @@ export async function POST(req: Request) {
     const totalSOL = totalLamports / 1e9;
 
     const dynamicIconURL = `${baseUrl}/api/icon?count=${emptyTAs.length}&solClaim=${totalSOL}`;
+
     const nextInlineAction: InlineNextActionLink = {
       type: "inline",
       action: {
@@ -109,7 +99,7 @@ export async function POST(req: Request) {
         description: `Close Token Accounts to get back your SOL`,
         label: `Claim my SOL`,
         title: `SOLClaimr`,
-        type: "action"
+        type: "action",
       }
     };
 
@@ -144,39 +134,38 @@ export async function POST(req: Request) {
       const bh = (await connection.getLatestBlockhash({commitment: 'finalized'})).blockhash;
       tx.recentBlockhash = bh;
 
-      const blinksightsActionIdentityInstruction = client.getActionIdentityInstructionV2(userPublicKey, req.url);
-
-
-
-      // if(blinksightsActionIdentityInstruction){
-      //   const messageV0 = new TransactionMessage({
-      //     payerKey: user,
-      //     recentBlockhash: bh,
-      //     instructions: [
-      //         blinksightsActionIdentityInstruction
-      //     ],
-      //   }).compileToV0Message();
-      //   console.log(messageV0)
-      // }
-
       const serializedTX = tx.serialize({
         requireAllSignatures: false,
         verifySignatures: false
       }).toString('base64');
 
+        const nextInlineActionMint: InlineNextActionLink = {
+          action: {
+            title: 'Mint participation NFT',
+            icon: iconURL.toString(),
+            label: 'Mint participation',
+            description: 'Holders will share a fee',
+            type: 'action'
+          },
+          type: "inline"
+        }
+
       const response: ActionPostResponse = {
         transaction: serializedTX,
         message: "Closing " + emptyTAs.length + " token accounts!",
+        links: {
+          next: nextInlineActionMint
+        }
       };
-      client.trackActionV2(userPublicKey, req.url);
+      // client.trackActionV2(userPublicKey, req.url);
       return Response.json(response, { headers: ACTIONS_CORS_HEADERS });
     }
     firstCall++;
     
-    client.trackActionV2(userPublicKey, req.url);
+    // client.trackActionV2(userPublicKey, req.url);
     return Response.json(response, { headers: ACTIONS_CORS_HEADERS });
   }
-  client.trackActionV2(userPublicKey, req.url);
+  // client.trackActionV2(userPublicKey, req.url);
 }
 
 
