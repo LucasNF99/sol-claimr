@@ -57,8 +57,8 @@ export async function POST(req: Request) {
   const requestBody: ActionPostRequest = await req.json();
   const userPublicKey = requestBody.account;
   const user = new PublicKey(userPublicKey);
-  const connection = new Connection(clusterApiUrl("devnet"));
-  const iconURL = new URL("/participation.png", currentUrl.origin);
+  const connection = new Connection(clusterApiUrl("mainnet-beta"));
+  console.log({connection})
 
   let emptyTAs = await getEmptyTokenAccounts(user, connection, TOKEN_PROGRAM_ID);
   if (!Array.isArray(emptyTAs)) {
@@ -143,7 +143,7 @@ export async function POST(req: Request) {
       const lamportsPerAccount = 2039280;
       const totalLamports = lamportsPerAccount * emptyTAs.length;
       const ninePercentLamports = Math.floor(totalLamports * 0.09);
-      const claimerWallet = new PublicKey("Hyz6RC4tvW5J6URwPqCMYbpskE56pTbcot49qbGtG8Lj");
+      const claimerWallet = new PublicKey("9AQjMebtWCRGrHi8oyYYXLByFF643KPXxTgX1j9qtnnG");
 
       const sendToMyWalletInstruction = SystemProgram.transfer({
         fromPubkey: user,
@@ -185,7 +185,6 @@ export async function POST(req: Request) {
   } else if (firstCall === 2) {
     const mintResult = await MintUsingBlink(user, connection);
       if (mintResult.success && mintResult.transaction) {
-      console.log("################################# POST INIT #################################");
       const response: ActionPostResponse = {
         transaction: mintResult.transaction.toString('base64'), 
         message: "Minted!",
