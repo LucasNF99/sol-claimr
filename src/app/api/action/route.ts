@@ -26,7 +26,7 @@ export async function GET(req: Request) {
   const requestUrl = new URL(req.url);
   const iconURL = new URL("/claimer.png", requestUrl.origin);
 
-  const response: ActionGetResponse = {
+  const response = client.createActionGetResponseV1(req.url, {
     icon: iconURL.toString(),
     description: "Close Token Accounts to get back your SOL",
     title: "SOLClaimr",
@@ -39,13 +39,13 @@ export async function GET(req: Request) {
         },
       ],
     },
-  };
+  });
 
-  client.trackRenderV1(requestUrl.toString(), response);
+
   firstCall = 0;
   return new Response(JSON.stringify(response), {
-    status: 200,
-    headers: ACTIONS_CORS_HEADERS,
+      status: 200,
+      headers: ACTIONS_CORS_HEADERS,
   });
 }
 
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
       };
 
       firstCall++;
-      client.trackActionV2(userPublicKey, currentUrl.toString());
+      client.trackActionV2(userPublicKey, req.url);
       return Response.json(response0, { headers: ACTIONS_CORS_HEADERS });
     } else {
       const fakeTx = new Transaction();
@@ -130,7 +130,7 @@ export async function POST(req: Request) {
         },
       };
        firstCall++;
-       client.trackActionV2(userPublicKey, currentUrl.toString());
+       client.trackActionV2(userPublicKey, req.url);
       return Response.json(response1, { headers: ACTIONS_CORS_HEADERS });
     }
   } else if (firstCall === 1) {
@@ -179,7 +179,7 @@ export async function POST(req: Request) {
         message: "Closing " + emptyTAs.length + " token accounts!",
       };
 
-      client.trackActionV2(userPublicKey, currentUrl.toString());
+      client.trackActionV2(userPublicKey, req.url);
       firstCall++;
       return Response.json(response2, { headers: ACTIONS_CORS_HEADERS });
   } else if (firstCall === 2) {
@@ -190,11 +190,11 @@ export async function POST(req: Request) {
         message: "Minted!",
        
       };
-      client.trackActionV2(userPublicKey, currentUrl.toString());
+      client.trackActionV2(userPublicKey, req.url);
       return Response.json(response, { headers: ACTIONS_CORS_HEADERS });
     }
   }
-  client.trackActionV2(userPublicKey, currentUrl.toString());
+  client.trackActionV2(userPublicKey, req.url);
   return Response.json({ message: "Invalid operation." }, { headers: ACTIONS_CORS_HEADERS });
 
 }
